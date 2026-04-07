@@ -102,6 +102,11 @@
             gap: 12px;
             font-size: 14px;
             animation: fadeIn 0.2s ease;
+            transition: opacity 0.2s;
+        }
+
+        #todo-list li.completed {
+            opacity: 0.65;
         }
 
         @keyframes fadeIn {
@@ -112,6 +117,12 @@
         #todo-list li .todo-text {
             flex: 1;
             line-height: 1.4;
+            transition: all 0.2s;
+        }
+
+        #todo-list li.completed .todo-text {
+            text-decoration: line-through;
+            color: var(--muted);
         }
 
         #todo-list li .todo-text .completed-badge {
@@ -137,6 +148,24 @@
         .btn:hover { border-color: var(--text); color: var(--text); }
         .btn.delete:hover { border-color: #ff5555; color: #ff5555; }
 
+        /* done 버튼: 완료 전 */
+        .btn.done:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* done 버튼: 완료 상태 — 액센트 색으로 채움 */
+        .btn.done.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0f0f0f;
+        }
+
+        .btn.done.active:hover {
+            opacity: 0.8;
+            color: #0f0f0f;
+        }
+
         .empty {
             font-family: 'DM Mono', monospace;
             font-size: 12px;
@@ -160,6 +189,10 @@
         async function fetchTodos() {
             const response = await fetch('/todos');
             const todos = await response.json();
+            renderTodos(todos);
+        }
+
+        function renderTodos(todos) {
             const todoList = document.getElementById('todo-list');
             todoList.innerHTML = '';
 
@@ -170,6 +203,7 @@
 
             todos.forEach(todo => {
                 const li = document.createElement('li');
+                if (todo.completed) li.classList.add('completed');
 
                 const text = document.createElement('span');
                 text.className = 'todo-text';
@@ -180,6 +214,12 @@
                     badge.textContent = '[done]';
                     text.appendChild(badge);
                 }
+
+                /* ── done 버튼 ── */
+                const doneButton = document.createElement('button');
+                doneButton.className = 'btn done' + (todo.completed ? ' active' : '');
+                doneButton.textContent = todo.completed ? 'undo' : 'done';
+                doneButton.onclick = () => toggleDone(todo);
 
                 const editButton = document.createElement('button');
                 editButton.className = 'btn';
@@ -192,10 +232,20 @@
                 deleteButton.onclick = () => deleteTodo(todo.id);
 
                 li.appendChild(text);
+                li.appendChild(doneButton);
                 li.appendChild(editButton);
                 li.appendChild(deleteButton);
                 todoList.appendChild(li);
             });
+        }
+
+        async function toggleDone(todo) {
+            const response = await fetch(`/todos/${todo.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...todo, completed: !todo.completed })
+            });
+            if (response.ok) fetchTodos();
         }
 
         async function editTodo(id) {
