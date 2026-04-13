@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import pytest
 from fastapi.testclient import TestClient
-from main import app, save_todos, load_todos, TodoItem
+from main import app, save_todos, load_todos, TodoItem, TODO_FILE
 
 client = TestClient(app)
 
@@ -64,3 +64,17 @@ def test_delete_todo_not_found():
     response = client.delete("/todos/1")
     assert response.status_code == 200
     assert response.json()["message"] == "To-Do item deleted"
+
+def test_load_todos_no_file():
+    if os.path.exists(TODO_FILE):
+        os.remove(TODO_FILE)
+    result = load_todos()
+    assert result == []
+
+def test_read_root():
+    from unittest.mock import patch, mock_open
+    html_content = "<html><body>Todo App</body></html>"
+    with patch("builtins.open", mock_open(read_data=html_content)):
+        response = client.get("/")
+    assert response.status_code == 200
+    assert "Todo App" in response.text

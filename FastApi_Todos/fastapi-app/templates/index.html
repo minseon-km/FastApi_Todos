@@ -7,12 +7,14 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #364038;
-            --surface: #bec4c0;
-            --border: #2a2a2a;
-            --accent: #c8f056;
-            --text: #545454;
-            --muted: #666;
+            --bg: #f4f6f2;
+            --surface: #ffffff;
+            --border: #d8ddd6;
+            --accent: #5a9e2f;
+            --text: #1e2420;
+            --muted: #7a8a7e;
+            --warn: #c47a00;
+            --urgent: #cc2200;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,21 +42,22 @@
             margin-bottom: 48px;
         }
 
-        h1::before {
-            content: '> ';
-            opacity: 0.5;
-        }
+        h1::before { content: '> '; opacity: 0.5; }
 
         #todo-form {
             display: flex;
+            flex-direction: column;
             gap: 8px;
             margin-bottom: 32px;
-            flex-wrap: wrap;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 8px;
         }
 
         #todo-form input {
             flex: 1;
-            min-width: 120px;
             background: var(--surface);
             border: 1px solid var(--border);
             color: var(--text);
@@ -65,26 +68,66 @@
             transition: border-color 0.2s;
         }
 
-        #todo-form input:focus {
-            border-color: var(--accent);
-        }
-
+        #todo-form input:focus { border-color: var(--accent); }
         #todo-form input::placeholder { color: var(--muted); }
 
-        #todo-form button {
+        .due-options {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .due-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            margin-right: 2px;
+        }
+
+        .due-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            padding: 5px 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 0.03em;
+        }
+
+        .due-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .due-btn.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0f0f0f;
+        }
+
+        .form-submit-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        #todo-form button[type="submit"] {
             background: var(--accent);
             color: #0f0f0f;
             border: none;
             font-family: 'DM Mono', monospace;
             font-size: 12px;
             font-weight: 500;
-            padding: 10px 16px;
+            padding: 10px 20px;
             cursor: pointer;
             letter-spacing: 0.05em;
             transition: opacity 0.2s;
         }
 
-        #todo-form button:hover { opacity: 0.85; }
+        #todo-form button[type="submit"]:hover { opacity: 0.85; }
 
         #todo-list {
             list-style: none;
@@ -105,32 +148,69 @@
             transition: opacity 0.2s;
         }
 
-        #todo-list li.completed {
-            opacity: 0.65;
-        }
+        #todo-list li.completed { opacity: 0.55; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        #todo-list li .todo-text {
+        .todo-text {
             flex: 1;
             line-height: 1.4;
+        }
+
+        .todo-title {
             transition: all 0.2s;
         }
 
-        #todo-list li.completed .todo-text {
+        li.completed .todo-title {
             text-decoration: line-through;
             color: var(--muted);
         }
 
-        #todo-list li .todo-text .completed-badge {
+        .completed-badge {
             font-family: 'DM Mono', monospace;
             font-size: 10px;
             color: var(--accent);
-            margin-left: 8px;
             opacity: 0.7;
+            margin-left: 6px;
+        }
+
+        .todo-meta {
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .due-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            padding: 2px 7px;
+            border: 1px solid;
+            letter-spacing: 0.04em;
+        }
+
+        .due-badge.normal {
+            color: var(--muted);
+            border-color: var(--border);
+        }
+
+        .due-badge.warning {
+            color: var(--warn);
+            border-color: var(--warn);
+        }
+
+        .due-badge.urgent {
+            color: var(--urgent);
+            border-color: var(--urgent);
+            animation: blink 1.6s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.4; }
         }
 
         .btn {
@@ -145,26 +225,17 @@
             white-space: nowrap;
         }
 
-        .btn:hover { border-color: var(--text); color: var(--text); }
-        .btn.delete:hover { border-color: #ff5555; color: #ff5555; }
+        .btn:hover               { border-color: var(--text);    color: var(--text);    }
+        .btn.delete:hover        { border-color: var(--urgent);   color: var(--urgent);  }
+        .btn.done:hover          { border-color: var(--accent);   color: var(--accent);  }
 
-        /* done 버튼: 완료 전 */
-        .btn.done:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        /* done 버튼: 완료 상태 — 액센트 색으로 채움 */
         .btn.done.active {
             background: var(--accent);
             border-color: var(--accent);
             color: #0f0f0f;
         }
 
-        .btn.done.active:hover {
-            opacity: 0.8;
-            color: #0f0f0f;
-        }
+        .btn.done.active:hover { opacity: 0.8; color: #0f0f0f; }
 
         .empty {
             font-family: 'DM Mono', monospace;
@@ -178,104 +249,228 @@
     <div class="container">
         <h1>To-Do List</h1>
         <form id="todo-form">
-            <input type="text" id="title" placeholder="Title" required>
-            <input type="text" id="description" placeholder="Description" required>
-            <button type="submit">ADD</button>
+            <div class="form-row">
+                <input type="text" id="title" placeholder="Title" required>
+                <input type="text" id="description" placeholder="Description" required>
+            </div>
+            <div class="due-options">
+                <span class="due-label">due //</span>
+                <button type="button" class="due-btn" data-due="today">today</button>
+                <button type="button" class="due-btn" data-due="tomorrow">tomorrow</button>
+                <button type="button" class="due-btn" data-due="week">this week</button>
+                <button type="button" class="due-btn" data-due="month">this month</button>
+            </div>
+            <div class="form-submit-row">
+                <button type="submit">ADD</button>
+            </div>
         </form>
         <ul id="todo-list"></ul>
     </div>
 
     <script>
+        let selectedDue = null;
+
+        /* ── 날짜 계산 ── */
+        function computeDueDate(option) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (option === 'today') {
+                return formatDate(today);
+            }
+            if (option === 'tomorrow') {
+                const d = new Date(today);
+                d.setDate(d.getDate() + 1);
+                return formatDate(d);
+            }
+            if (option === 'week') {
+                // 이번 주 일요일 (오늘이 일요일이면 다음 주 일요일)
+                const d = new Date(today);
+                const day = d.getDay();
+                const daysUntilSunday = day === 0 ? 7 : 7 - day;
+                d.setDate(d.getDate() + daysUntilSunday);
+                return formatDate(d);
+            }
+            if (option === 'month') {
+                // 이번 달 말일
+                const d = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                return formatDate(d);
+            }
+            return null;
+        }
+
+        function formatDate(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function displayDate(dateStr) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            return new Date(y, m - 1, d)
+                .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function getDaysUntil(dateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const due = new Date(y, m - 1, d);
+            return Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+        }
+
+        /* ── due 버튼 토글 ── */
+        document.querySelectorAll('.due-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = btn.dataset.due;
+                if (selectedDue === val) {
+                    selectedDue = null;
+                    btn.classList.remove('selected');
+                } else {
+                    document.querySelectorAll('.due-btn').forEach(b => b.classList.remove('selected'));
+                    selectedDue = val;
+                    btn.classList.add('selected');
+                }
+            });
+        });
+
+        /* ── 렌더링 ── */
         async function fetchTodos() {
-            const response = await fetch('/todos');
-            const todos = await response.json();
-            renderTodos(todos);
+            const res = await fetch('/todos');
+            renderTodos(await res.json());
         }
 
         function renderTodos(todos) {
-            const todoList = document.getElementById('todo-list');
-            todoList.innerHTML = '';
+            const list = document.getElementById('todo-list');
+            list.innerHTML = '';
 
             if (todos.length === 0) {
-                todoList.innerHTML = '<p class="empty">// no tasks yet</p>';
+                list.innerHTML = '<p class="empty">// no tasks yet</p>';
                 return;
             }
 
-            todos.forEach(todo => {
+            // 마감일 오름차순 정렬, 마감일 없는 항목은 뒤로
+            const sorted = [...todos].sort((a, b) => {
+                if (!a.due && !b.due) return 0;
+                if (!a.due) return 1;
+                if (!b.due) return -1;
+                return a.due.localeCompare(b.due);
+            });
+
+            sorted.forEach(todo => {
                 const li = document.createElement('li');
                 if (todo.completed) li.classList.add('completed');
 
-                const text = document.createElement('span');
-                text.className = 'todo-text';
-                text.textContent = `${todo.title}: ${todo.description}`;
+                /* 텍스트 영역 */
+                const textWrap = document.createElement('div');
+                textWrap.className = 'todo-text';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'todo-title';
+                titleEl.textContent = `${todo.title}: ${todo.description}`;
                 if (todo.completed) {
                     const badge = document.createElement('span');
                     badge.className = 'completed-badge';
                     badge.textContent = '[done]';
-                    text.appendChild(badge);
+                    titleEl.appendChild(badge);
+                }
+                textWrap.appendChild(titleEl);
+
+                /* 마감일 배지 */
+                if (todo.due) {
+                    const meta = document.createElement('div');
+                    meta.className = 'todo-meta';
+
+                    const badge = document.createElement('span');
+                    const days = getDaysUntil(todo.due);
+
+                    if (days < 0) {
+                        badge.className = 'due-badge urgent';
+                        badge.textContent = `!! overdue · ${displayDate(todo.due)}`;
+                    } else if (days === 0) {
+                        badge.className = 'due-badge urgent';
+                        badge.textContent = `!! today · ${displayDate(todo.due)}`;
+                    } else if (days <= 3) {
+                        badge.className = 'due-badge warning';
+                        badge.textContent = `! ${days}d left · ${displayDate(todo.due)}`;
+                    } else {
+                        badge.className = 'due-badge normal';
+                        badge.textContent = displayDate(todo.due);
+                    }
+
+                    meta.appendChild(badge);
+                    textWrap.appendChild(meta);
                 }
 
-                /* ── done 버튼 ── */
-                const doneButton = document.createElement('button');
-                doneButton.className = 'btn done' + (todo.completed ? ' active' : '');
-                doneButton.textContent = todo.completed ? 'undo' : 'done';
-                doneButton.onclick = () => toggleDone(todo);
+                /* 버튼 */
+                const doneBtn = document.createElement('button');
+                doneBtn.className = 'btn done' + (todo.completed ? ' active' : '');
+                doneBtn.textContent = todo.completed ? 'undo' : 'done';
+                doneBtn.onclick = () => toggleDone(todo);
 
-                const editButton = document.createElement('button');
-                editButton.className = 'btn';
-                editButton.textContent = 'edit';
-                editButton.onclick = () => editTodo(todo.id);
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn';
+                editBtn.textContent = 'edit';
+                editBtn.onclick = () => editTodo(todo);
 
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'btn delete';
-                deleteButton.textContent = 'del';
-                deleteButton.onclick = () => deleteTodo(todo.id);
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn delete';
+                delBtn.textContent = 'del';
+                delBtn.onclick = () => deleteTodo(todo.id);
 
-                li.appendChild(text);
-                li.appendChild(doneButton);
-                li.appendChild(editButton);
-                li.appendChild(deleteButton);
-                todoList.appendChild(li);
+                li.appendChild(textWrap);
+                li.appendChild(doneBtn);
+                li.appendChild(editBtn);
+                li.appendChild(delBtn);
+                list.appendChild(li);
             });
         }
 
+        /* ── API 호출 ── */
         async function toggleDone(todo) {
-            const response = await fetch(`/todos/${todo.id}`, {
+            const res = await fetch(`/todos/${todo.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...todo, completed: !todo.completed })
             });
-            if (response.ok) fetchTodos();
+            if (res.ok) fetchTodos();
         }
 
-        async function editTodo(id) {
-            const title = prompt('Enter new title:');
-            const description = prompt('Enter new description:');
-            const completed = confirm('Is this task completed?');
-            const response = await fetch(`/todos/${id}`, {
+        async function editTodo(todo) {
+            const title = prompt('New title:', todo.title);
+            if (title === null) return;
+            const description = prompt('New description:', todo.description);
+            if (description === null) return;
+            const completed = confirm('Mark as completed?');
+            const res = await fetch(`/todos/${todo.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, title, description, completed })
+                body: JSON.stringify({ ...todo, title, description, completed })
             });
-            if (response.ok) fetchTodos();
+            if (res.ok) fetchTodos();
         }
 
         async function deleteTodo(id) {
-            const response = await fetch(`/todos/${id}`, { method: 'DELETE' });
-            if (response.ok) fetchTodos();
+            const res = await fetch(`/todos/${id}`, { method: 'DELETE' });
+            if (res.ok) fetchTodos();
         }
 
-        document.getElementById('todo-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
+        document.getElementById('todo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
-            const response = await fetch('/todos', {
+            const due = selectedDue ? computeDueDate(selectedDue) : null;
+
+            const res = await fetch('/todos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: Date.now(), title, description, completed: false })
+                body: JSON.stringify({ id: Date.now(), title, description, completed: false, due })
             });
-            if (response.ok) {
-                event.target.reset();
+            if (res.ok) {
+                e.target.reset();
+                document.querySelectorAll('.due-btn').forEach(b => b.classList.remove('selected'));
+                selectedDue = null;
                 fetchTodos();
             }
         });
