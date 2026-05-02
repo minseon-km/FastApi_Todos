@@ -1,11 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from typing import Optional
 import json
 import os
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
+
+# Prometheus 메트릭스 엔드포인트 (/metrics)
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 # To-Do 항목 모델
 class TodoItem(BaseModel):
@@ -13,7 +16,6 @@ class TodoItem(BaseModel):
     title: str
     description: str
     completed: bool
-    due: Optional[str] = None  # YYYY-MM-DD 형식
 
 # JSON 파일 경로
 TODO_FILE = "todo.json"
@@ -44,7 +46,7 @@ def create_todo(todo: TodoItem):
     return todo
 
 # To-Do 항목 수정
-@app.put("/todos/{todo_id}", response_model=TodoItem, responses={404: {"description": "To-Do item not found"}})
+@app.put("/todos/{todo_id}", response_model=TodoItem)
 def update_todo(todo_id: int, updated_todo: TodoItem):
     todos = load_todos()
     for todo in todos:
