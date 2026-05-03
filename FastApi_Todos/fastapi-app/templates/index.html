@@ -3,18 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>To-Do</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f4f6f2;
+            --bg: #f0f4ee;
             --surface: #ffffff;
-            --border: #d8ddd6;
+            --surface-2: #f6faf4;
+            --border: #dde4db;
             --accent: #5a9e2f;
-            --text: #1e2420;
+            --accent-dark: #3d7a1a;
+            --accent-hover: #4d8e25;
+            --accent-bg: #edf7e3;
+            --accent-glow: rgba(90, 158, 47, 0.18);
+            --text: #1a2018;
+            --text-2: #445040;
             --muted: #7a8a7e;
             --warn: #c47a00;
+            --warn-bg: #fdf5e0;
+            --warn-border: #f0c84a;
             --urgent: #cc2200;
+            --urgent-bg: #fdf0ee;
+            --urgent-border: #f0a090;
+            --indigo: #6366f1;
+            --indigo-bg: #eef0fd;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-lg: 0 12px 36px rgba(0,0,0,0.14);
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-xs: 7px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,459 +40,1381 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            padding: 48px 24px;
+            padding-bottom: 80px;
         }
 
-        .container {
-            max-width: 560px;
+        /* ── App Header ── */
+        .app-header {
+            background: linear-gradient(140deg, #1e4010 0%, #2f6818 45%, #4a9028 100%);
+            padding: 36px 24px 56px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 320px; height: 320px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; left: -40px;
+            width: 280px; height: 280px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header-inner {
+            max-width: 660px;
             margin: 0 auto;
-        }
-
-        h1 {
-            font-family: 'DM Mono', monospace;
-            font-size: 13px;
-            font-weight: 400;
-            color: var(--accent);
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            margin-bottom: 48px;
-        }
-
-        h1::before { content: '> '; opacity: 0.5; }
-
-        #todo-form {
+            position: relative;
+            z-index: 1;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 32px;
+            align-items: flex-end;
+            justify-content: space-between;
         }
 
-        .form-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        #todo-form input {
-            flex: 1;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            padding: 10px 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        #todo-form input:focus { border-color: var(--accent); }
-        #todo-form input::placeholder { color: var(--muted); }
-
-        .due-options {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .due-label {
+        .header-left .header-eyebrow {
             font-family: 'DM Mono', monospace;
             font-size: 10px;
-            color: var(--muted);
-            letter-spacing: 0.1em;
-            margin-right: 2px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 6px;
         }
 
-        .due-btn {
-            background: none;
-            border: 1px solid var(--border);
+        .header-left .header-title {
+            font-size: 30px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.6px;
+            line-height: 1;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .header-right .header-date {
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            font-weight: 300;
+        }
+
+        .header-right .header-greeting {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 2px;
+        }
+
+        /* ── Stats Card ── */
+        .stats-wrapper {
+            max-width: 660px;
+            margin: -28px auto 0;
+            padding: 0 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stats-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 18px 24px 20px;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 0;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+            padding: 0 8px;
+            border-right: 1px solid var(--border);
+        }
+
+        .stat:last-child { border-right: none; }
+
+        .stat-number {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 3px;
+            color: var(--text);
+        }
+
+        .stat-number.accent  { color: var(--accent); }
+        .stat-number.indigo  { color: var(--indigo); }
+
+        .stat-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
             color: var(--muted);
+        }
+
+        .progress-track {
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-dark), var(--accent), #7ec84a);
+            border-radius: 3px;
+            transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        /* ── Main ── */
+        .main {
+            max-width: 660px;
+            margin: 20px auto 0;
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* ── Add Form Card ── */
+        .add-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .add-card-head {
+            padding: 13px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface-2);
+        }
+
+        .add-card-icon {
+            width: 22px; height: 22px;
+            background: var(--accent-bg);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .add-card-head-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-2);
+            letter-spacing: 0.01em;
+        }
+
+        .add-form-body {
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .input-row { display: flex; gap: 10px; }
+
+        .field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .field label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+        }
+
+        .field input {
+            background: var(--surface-2);
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 9px 13px;
+            border-radius: var(--radius-xs);
+            outline: none;
+            transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+        }
+
+        .field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: #fff;
+        }
+
+        .field input::placeholder { color: #c0ccbd; }
+
+        .due-section { display: flex; flex-direction: column; gap: 7px; }
+
+        .due-section .field-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+        }
+
+        .due-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .due-chip {
+            background: var(--surface-2);
+            border: 1.5px solid var(--border);
+            color: var(--text-2);
             font-family: 'DM Mono', monospace;
             font-size: 11px;
-            padding: 5px 11px;
+            padding: 5px 13px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.15s;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.02em;
         }
 
-        .due-btn:hover {
+        .due-chip:hover {
             border-color: var(--accent);
             color: var(--accent);
+            background: var(--accent-bg);
         }
 
-        .due-btn.selected {
+        .due-chip.selected {
             background: var(--accent);
             border-color: var(--accent);
-            color: #0f0f0f;
+            color: #fff;
         }
 
-        .form-submit-row {
+        .form-footer {
             display: flex;
             justify-content: flex-end;
         }
 
-        #todo-form button[type="submit"] {
+        .btn-add {
             background: var(--accent);
-            color: #0f0f0f;
+            color: #fff;
             border: none;
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            font-weight: 500;
-            padding: 10px 20px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: var(--radius-xs);
             cursor: pointer;
-            letter-spacing: 0.05em;
-            transition: opacity 0.2s;
-        }
-
-        #todo-form button[type="submit"]:hover { opacity: 0.85; }
-
-        #todo-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        #todo-list li {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-            animation: fadeIn 0.2s ease;
-            transition: opacity 0.2s;
-        }
-
-        #todo-list li.completed { opacity: 0.55; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .todo-text {
-            flex: 1;
-            line-height: 1.4;
-        }
-
-        .todo-title {
             transition: all 0.2s;
-        }
-
-        li.completed .todo-title {
-            text-decoration: line-through;
-            color: var(--muted);
-        }
-
-        .completed-badge {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            color: var(--accent);
-            opacity: 0.7;
-            margin-left: 6px;
-        }
-
-        .todo-meta {
-            margin-top: 5px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .due-badge {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            padding: 2px 7px;
-            border: 1px solid;
-            letter-spacing: 0.04em;
+        .btn-add:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px var(--accent-glow);
         }
 
-        .due-badge.normal {
+        .btn-add:active { transform: translateY(0); box-shadow: none; }
+
+        .btn-add-icon {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.7);
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        /* ── Search & Filter ── */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-wrap svg {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--muted);
-            border-color: var(--border);
+            pointer-events: none;
         }
 
-        .due-badge.warning {
-            color: var(--warn);
-            border-color: var(--warn);
+        .search-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 9px 13px 9px 35px;
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: all 0.18s;
+            box-shadow: var(--shadow-sm);
         }
 
-        .due-badge.urgent {
-            color: var(--urgent);
-            border-color: var(--urgent);
-            animation: blink 1.6s ease-in-out infinite;
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0.4; }
+        .search-input::placeholder { color: #bfcabc; }
+
+        .filter-tabs {
+            display: flex;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 3px;
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
         }
 
-        .btn {
+        .filter-tab {
             background: none;
-            border: 1px solid var(--border);
+            border: none;
             color: var(--muted);
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            padding: 4px 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 7px;
             cursor: pointer;
             transition: all 0.15s;
             white-space: nowrap;
         }
 
-        .btn:hover               { border-color: var(--text);    color: var(--text);    }
-        .btn.delete:hover        { border-color: var(--urgent);   color: var(--urgent);  }
-        .btn.done:hover          { border-color: var(--accent);   color: var(--accent);  }
+        .filter-tab:hover { color: var(--text-2); }
 
-        .btn.done.active {
+        .filter-tab.active {
             background: var(--accent);
-            border-color: var(--accent);
-            color: #0f0f0f;
+            color: #fff;
         }
 
-        .btn.done.active:hover { opacity: 0.8; color: #0f0f0f; }
+        /* ── Sort bar ── */
+        .sort-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2px;
+        }
 
-        .empty {
+        .sort-bar-label {
             font-family: 'DM Mono', monospace;
-            font-size: 12px;
+            font-size: 10px;
             color: var(--muted);
-            padding: 24px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .sort-bar-label span {
+            color: var(--text-2);
+            font-weight: 500;
+        }
+
+        .sort-select {
+            background: none;
+            border: none;
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            cursor: pointer;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .sort-select:hover { color: var(--text-2); }
+
+        /* ── Todo List ── */
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            background: var(--surface);
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 52px 24px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 36px;
+            margin-bottom: 14px;
+            opacity: 0.35;
+            display: block;
+        }
+
+        .empty-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-2);
+            margin-bottom: 5px;
+        }
+
+        .empty-sub {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ── Todo Card ── */
+        .todo-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s, opacity 0.25s;
+            animation: cardIn 0.22s ease;
+        }
+
+        .todo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: #c8d5c5;
+        }
+
+        .todo-card.completed { opacity: 0.55; }
+        .todo-card.completed:hover { opacity: 0.8; }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom checkbox */
+        .todo-check {
+            width: 20px; height: 20px;
+            min-width: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .todo-check:hover { border-color: var(--accent); background: var(--accent-bg); }
+
+        .todo-check.checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .todo-check.checked svg { display: block; }
+        .todo-check svg { display: none; }
+
+        /* Todo body */
+        .todo-body { flex: 1; min-width: 0; }
+
+        .todo-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 3px;
+        }
+
+        .todo-title-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .todo-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            transition: color 0.2s;
+            line-height: 1.3;
+        }
+
+        .todo-card.completed .todo-title {
+            text-decoration: line-through;
+            color: var(--muted);
+        }
+
+        .done-pill {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: var(--accent-bg);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .todo-desc {
+            font-size: 13px;
+            color: var(--text-2);
+            line-height: 1.45;
+            margin-bottom: 7px;
+        }
+
+        .todo-card.completed .todo-desc { color: var(--muted); }
+
+        .todo-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+        /* Due badges */
+        .due-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            padding: 3px 9px;
+            border-radius: 5px;
+            letter-spacing: 0.03em;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .due-badge.normal  { background: var(--surface-2); color: var(--muted);  border: 1px solid var(--border); }
+        .due-badge.warning { background: var(--warn-bg);   color: var(--warn);   border: 1px solid var(--warn-border); }
+        .due-badge.urgent  {
+            background: var(--urgent-bg);
+            color: var(--urgent);
+            border: 1px solid var(--urgent-border);
+            animation: urgentPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.55; }
+        }
+
+        /* Action buttons */
+        .todo-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            width: 30px; height: 30px;
+            border: 1.5px solid var(--border);
+            background: none;
+            color: var(--muted);
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.14s;
+            flex-shrink: 0;
+        }
+
+        .icon-btn:hover { border-color: var(--text); color: var(--text); }
+
+        .icon-btn.edit:hover {
+            border-color: var(--indigo);
+            color: var(--indigo);
+            background: var(--indigo-bg);
+        }
+
+        .icon-btn.delete:hover {
+            border-color: var(--urgent);
+            color: var(--urgent);
+            background: var(--urgent-bg);
+        }
+
+        /* ── Edit Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 18, 8, 0.55);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 440px;
+            transform: scale(0.94) translateY(12px);
+            transition: transform 0.28s cubic-bezier(0.34, 1.45, 0.64, 1);
+        }
+
+        .modal-overlay.open .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px 22px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .modal-close {
+            width: 28px; height: 28px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.14s;
+        }
+
+        .modal-close:hover {
+            background: var(--urgent-bg);
+            border-color: var(--urgent-border);
+            color: var(--urgent);
+        }
+
+        .modal-body {
+            padding: 18px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .modal-field { display: flex; flex-direction: column; gap: 5px; }
+
+        .modal-field label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+        }
+
+        .modal-field input {
+            background: var(--surface-2);
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 9px 13px;
+            border-radius: var(--radius-xs);
+            outline: none;
+            transition: all 0.18s;
+        }
+
+        .modal-field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: #fff;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-xs);
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-2);
+        }
+
+        .toggle {
+            width: 38px; height: 21px;
+            background: var(--border);
+            border-radius: 11px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+            border: none;
+            flex-shrink: 0;
+        }
+
+        .toggle.on { background: var(--accent); }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 15px; height: 15px;
+            background: #fff;
+            border-radius: 50%;
+            top: 3px; left: 3px;
+            transition: left 0.18s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle.on::after { left: 20px; }
+
+        .modal-footer {
+            padding: 0 22px 20px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: none;
+            border: 1.5px solid var(--border);
+            color: var(--text-2);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 18px;
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            transition: all 0.14s;
+        }
+
+        .btn-cancel:hover { border-color: var(--text); }
+
+        .btn-save {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 22px;
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .btn-save:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-save:active { transform: translateY(0); }
+
+        /* ── Toast ── */
+        .toast-container {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .toast {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 11px 16px;
+            border-radius: var(--radius-xs);
+            box-shadow: var(--shadow-md);
+            max-width: 280px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn 0.25s ease;
+        }
+
+        .toast.success { background: #1c3d10; color: #a8e87a; border-left: 3px solid var(--accent); }
+        .toast.error   { background: #3d1010; color: #f5a0a0; border-left: 3px solid var(--urgent); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(18px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(18px); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 520px) {
+            .input-row         { flex-direction: column; }
+            .toolbar           { flex-direction: column; align-items: stretch; }
+            .filter-tabs       { justify-content: center; }
+            .header-inner      { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .header-right      { text-align: left; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>To-Do List</h1>
-        <form id="todo-form">
-            <div class="form-row">
-                <input type="text" id="title" placeholder="Title" required>
-                <input type="text" id="description" placeholder="Description" required>
+
+    <!-- ── Header ── -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <div class="header-eyebrow">// workspace</div>
+                <div class="header-title">To-Do</div>
             </div>
-            <div class="due-options">
-                <span class="due-label">due //</span>
-                <button type="button" class="due-btn" data-due="today">today</button>
-                <button type="button" class="due-btn" data-due="tomorrow">tomorrow</button>
-                <button type="button" class="due-btn" data-due="week">this week</button>
-                <button type="button" class="due-btn" data-due="month">this month</button>
+            <div class="header-right">
+                <div class="header-greeting" id="header-greeting"></div>
+                <div class="header-date" id="header-date"></div>
             </div>
-            <div class="form-submit-row">
-                <button type="submit">ADD</button>
+        </div>
+    </header>
+
+    <!-- ── Stats ── -->
+    <div class="stats-wrapper">
+        <div class="stats-card">
+            <div class="stats-row">
+                <div class="stat">
+                    <div class="stat-number" id="stat-total">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number accent" id="stat-done">0</div>
+                    <div class="stat-label">Done</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number indigo" id="stat-left">0</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
             </div>
-        </form>
-        <ul id="todo-list"></ul>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
     </div>
 
+    <!-- ── Main ── -->
+    <main class="main">
+
+        <!-- Add Form -->
+        <div class="add-card">
+            <div class="add-card-head">
+                <div class="add-card-icon">+</div>
+                <span class="add-card-head-label">New Task</span>
+            </div>
+            <form id="todo-form">
+                <div class="add-form-body">
+                    <div class="input-row">
+                        <div class="field">
+                            <label>Title</label>
+                            <input type="text" id="title" placeholder="Task title" required autocomplete="off">
+                        </div>
+                        <div class="field">
+                            <label>Description</label>
+                            <input type="text" id="description" placeholder="Add a note..." required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="due-section">
+                        <div class="field-label">Due date</div>
+                        <div class="due-chips">
+                            <button type="button" class="due-chip" data-due="today">today</button>
+                            <button type="button" class="due-chip" data-due="tomorrow">tomorrow</button>
+                            <button type="button" class="due-chip" data-due="week">this week</button>
+                            <button type="button" class="due-chip" data-due="month">this month</button>
+                        </div>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="btn-add">
+                            <div class="btn-add-icon">+</div>
+                            Add Task
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-wrap">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+                <input type="text" class="search-input" id="search-input" placeholder="Search tasks..." autocomplete="off">
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="active">Active</button>
+                <button class="filter-tab" data-filter="done">Done</button>
+            </div>
+        </div>
+
+        <!-- Sort / count bar -->
+        <div class="sort-bar">
+            <div class="sort-bar-label">Showing <span id="visible-count">0</span> tasks</div>
+            <select class="sort-select" id="sort-select">
+                <option value="due">Sort: due date</option>
+                <option value="title">Sort: title</option>
+                <option value="status">Sort: status</option>
+            </select>
+        </div>
+
+        <!-- Todo list -->
+        <div class="todo-list" id="todo-list"></div>
+
+    </main>
+
+    <!-- ── Edit Modal ── -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Task</div>
+                <button class="modal-close" id="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-field">
+                    <label>Title</label>
+                    <input type="text" id="edit-title" autocomplete="off">
+                </div>
+                <div class="modal-field">
+                    <label>Description</label>
+                    <input type="text" id="edit-description" autocomplete="off">
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Mark as completed</span>
+                    <button type="button" class="toggle" id="edit-toggle"></button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+                <button class="btn-save" id="modal-save-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Toast Container ── -->
+    <div class="toast-container" id="toast-container"></div>
+
     <script>
+        /* ─────────────────────────────────────
+           State
+        ───────────────────────────────────── */
+        let allTodos    = [];
+        let filter      = 'all';
+        let sortMode    = 'due';
+        let searchQuery = '';
         let selectedDue = null;
+        let editingTodo = null;
 
-        /* ── 날짜 계산 ── */
-        function computeDueDate(option) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            if (option === 'today') {
-                return formatDate(today);
-            }
-            if (option === 'tomorrow') {
-                const d = new Date(today);
-                d.setDate(d.getDate() + 1);
-                return formatDate(d);
-            }
-            if (option === 'week') {
-                // 이번 주 일요일 (오늘이 일요일이면 다음 주 일요일)
-                const d = new Date(today);
-                const day = d.getDay();
-                const daysUntilSunday = day === 0 ? 7 : 7 - day;
-                d.setDate(d.getDate() + daysUntilSunday);
-                return formatDate(d);
-            }
-            if (option === 'month') {
-                // 이번 달 말일
-                const d = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                return formatDate(d);
-            }
-            return null;
+        /* ─────────────────────────────────────
+           Date helpers
+        ───────────────────────────────────── */
+        function formatDate(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
         }
 
-        function formatDate(date) {
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
+        function computeDueDate(option) {
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            if (option === 'today')    return formatDate(today);
+            if (option === 'tomorrow') { const d = new Date(today); d.setDate(d.getDate() + 1); return formatDate(d); }
+            if (option === 'week')     { const d = new Date(today); const dow = d.getDay(); d.setDate(d.getDate() + (dow === 0 ? 7 : 7 - dow)); return formatDate(d); }
+            if (option === 'month')    { return formatDate(new Date(today.getFullYear(), today.getMonth() + 1, 0)); }
+            return null;
         }
 
         function displayDate(dateStr) {
             const [y, m, d] = dateStr.split('-').map(Number);
-            return new Date(y, m - 1, d)
-                .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
 
         function getDaysUntil(dateStr) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const today = new Date(); today.setHours(0, 0, 0, 0);
             const [y, m, d] = dateStr.split('-').map(Number);
-            const due = new Date(y, m - 1, d);
-            return Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+            return Math.ceil((new Date(y, m - 1, d) - today) / 86400000);
         }
 
-        /* ── due 버튼 토글 ── */
-        document.querySelectorAll('.due-btn').forEach(btn => {
+        /* ─────────────────────────────────────
+           Header date + greeting
+        ───────────────────────────────────── */
+        (function () {
+            const now  = new Date();
+            const hr   = now.getHours();
+            const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+            document.getElementById('header-greeting').textContent = greet;
+            document.getElementById('header-date').textContent =
+                now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        })();
+
+        /* ─────────────────────────────────────
+           Due chip toggle
+        ───────────────────────────────────── */
+        document.querySelectorAll('.due-chip').forEach(btn => {
             btn.addEventListener('click', () => {
                 const val = btn.dataset.due;
                 if (selectedDue === val) {
                     selectedDue = null;
                     btn.classList.remove('selected');
                 } else {
-                    document.querySelectorAll('.due-btn').forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.due-chip').forEach(b => b.classList.remove('selected'));
                     selectedDue = val;
                     btn.classList.add('selected');
                 }
             });
         });
 
-        /* ── 렌더링 ── */
-        async function fetchTodos() {
-            const res = await fetch('/todos');
-            renderTodos(await res.json());
+        /* ─────────────────────────────────────
+           Filter tabs
+        ───────────────────────────────────── */
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                filter = tab.dataset.filter;
+                renderTodos(allTodos);
+            });
+        });
+
+        /* Search */
+        document.getElementById('search-input').addEventListener('input', e => {
+            searchQuery = e.target.value.toLowerCase();
+            renderTodos(allTodos);
+        });
+
+        /* Sort */
+        document.getElementById('sort-select').addEventListener('change', e => {
+            sortMode = e.target.value;
+            renderTodos(allTodos);
+        });
+
+        /* ─────────────────────────────────────
+           Stats
+        ───────────────────────────────────── */
+        function updateStats(todos) {
+            const total = todos.length;
+            const done  = todos.filter(t => t.completed).length;
+            const left  = total - done;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-done').textContent  = done;
+            document.getElementById('stat-left').textContent  = left;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            document.getElementById('progress-fill').style.width = pct + '%';
         }
 
-        function renderTodos(todos) {
-            const list = document.getElementById('todo-list');
-            list.innerHTML = '';
-
-            if (todos.length === 0) {
-                list.innerHTML = '<p class="empty">// no tasks yet</p>';
-                return;
-            }
-
-            // 마감일 오름차순 정렬, 마감일 없는 항목은 뒤로
-            const sorted = [...todos].sort((a, b) => {
+        /* ─────────────────────────────────────
+           Render
+        ───────────────────────────────────── */
+        function applySort(list) {
+            return [...list].sort((a, b) => {
+                if (sortMode === 'title')  return a.title.localeCompare(b.title);
+                if (sortMode === 'status') return Number(a.completed) - Number(b.completed);
+                /* default: due */
                 if (!a.due && !b.due) return 0;
                 if (!a.due) return 1;
                 if (!b.due) return -1;
                 return a.due.localeCompare(b.due);
             });
+        }
 
-            sorted.forEach(todo => {
-                const li = document.createElement('li');
-                if (todo.completed) li.classList.add('completed');
+        function renderTodos(todos) {
+            let list = todos;
 
-                /* 텍스트 영역 */
-                const textWrap = document.createElement('div');
-                textWrap.className = 'todo-text';
+            if (filter === 'active') list = list.filter(t => !t.completed);
+            if (filter === 'done')   list = list.filter(t => t.completed);
 
-                const titleEl = document.createElement('div');
+            if (searchQuery) {
+                list = list.filter(t =>
+                    t.title.toLowerCase().includes(searchQuery) ||
+                    t.description.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            list = applySort(list);
+
+            document.getElementById('visible-count').textContent = list.length;
+
+            const container = document.getElementById('todo-list');
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                const icon   = filter === 'done' ? '◎' : searchQuery ? '⊘' : '✓';
+                const title  = searchQuery ? 'No matching tasks'
+                             : filter === 'done'   ? 'Nothing completed yet'
+                             : filter === 'active' ? 'All caught up!'
+                             : 'No tasks yet';
+                const sub    = searchQuery ? 'Try a different search term'
+                             : filter === 'active' ? 'Add a new task above to get started'
+                             : 'Tasks you complete will appear here';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">${icon}</span>
+                        <div class="empty-title">${title}</div>
+                        <div class="empty-sub">${sub}</div>
+                    </div>`;
+                return;
+            }
+
+            list.forEach(todo => {
+                const card = document.createElement('div');
+                card.className = 'todo-card' + (todo.completed ? ' completed' : '');
+
+                /* ── Checkbox ── */
+                const check = document.createElement('div');
+                check.className = 'todo-check' + (todo.completed ? ' checked' : '');
+                check.innerHTML = '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                check.setAttribute('role', 'checkbox');
+                check.setAttribute('aria-checked', todo.completed ? 'true' : 'false');
+                check.onclick = () => toggleDone(todo);
+
+                /* ── Body ── */
+                const body = document.createElement('div');
+                body.className = 'todo-body';
+
+                const top = document.createElement('div');
+                top.className = 'todo-top';
+
+                const titleRow = document.createElement('div');
+                titleRow.className = 'todo-title-row';
+
+                const titleEl = document.createElement('span');
                 titleEl.className = 'todo-title';
-                titleEl.textContent = `${todo.title}: ${todo.description}`;
+                titleEl.textContent = todo.title;
+                titleRow.appendChild(titleEl);
+
                 if (todo.completed) {
-                    const badge = document.createElement('span');
-                    badge.className = 'completed-badge';
-                    badge.textContent = '[done]';
-                    titleEl.appendChild(badge);
+                    const pill = document.createElement('span');
+                    pill.className = 'done-pill';
+                    pill.textContent = 'done';
+                    titleRow.appendChild(pill);
                 }
-                textWrap.appendChild(titleEl);
 
-                /* 마감일 배지 */
+                top.appendChild(titleRow);
+                body.appendChild(top);
+
+                const descEl = document.createElement('div');
+                descEl.className = 'todo-desc';
+                descEl.textContent = todo.description;
+                body.appendChild(descEl);
+
                 if (todo.due) {
-                    const meta = document.createElement('div');
+                    const meta  = document.createElement('div');
                     meta.className = 'todo-meta';
-
                     const badge = document.createElement('span');
-                    const days = getDaysUntil(todo.due);
+                    const days  = getDaysUntil(todo.due);
 
                     if (days < 0) {
                         badge.className = 'due-badge urgent';
-                        badge.textContent = `!! overdue · ${displayDate(todo.due)}`;
+                        badge.textContent = `⚠ overdue · ${displayDate(todo.due)}`;
                     } else if (days === 0) {
                         badge.className = 'due-badge urgent';
-                        badge.textContent = `!! today · ${displayDate(todo.due)}`;
+                        badge.textContent = `⚠ due today · ${displayDate(todo.due)}`;
                     } else if (days <= 3) {
                         badge.className = 'due-badge warning';
-                        badge.textContent = `! ${days}d left · ${displayDate(todo.due)}`;
+                        badge.textContent = `● ${days}d left · ${displayDate(todo.due)}`;
                     } else {
                         badge.className = 'due-badge normal';
-                        badge.textContent = displayDate(todo.due);
+                        badge.textContent = `○ ${displayDate(todo.due)}`;
                     }
 
                     meta.appendChild(badge);
-                    textWrap.appendChild(meta);
+                    body.appendChild(meta);
                 }
 
-                /* 버튼 */
-                const doneBtn = document.createElement('button');
-                doneBtn.className = 'btn done' + (todo.completed ? ' active' : '');
-                doneBtn.textContent = todo.completed ? 'undo' : 'done';
-                doneBtn.onclick = () => toggleDone(todo);
+                /* ── Actions ── */
+                const actions = document.createElement('div');
+                actions.className = 'todo-actions';
 
                 const editBtn = document.createElement('button');
-                editBtn.className = 'btn';
-                editBtn.textContent = 'edit';
-                editBtn.onclick = () => editTodo(todo);
+                editBtn.className = 'icon-btn edit';
+                editBtn.title = 'Edit task';
+                editBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/></svg>';
+                editBtn.onclick = () => openModal(todo);
 
                 const delBtn = document.createElement('button');
-                delBtn.className = 'btn delete';
-                delBtn.textContent = 'del';
+                delBtn.className = 'icon-btn delete';
+                delBtn.title = 'Delete task';
+                delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>';
                 delBtn.onclick = () => deleteTodo(todo.id);
 
-                li.appendChild(textWrap);
-                li.appendChild(doneBtn);
-                li.appendChild(editBtn);
-                li.appendChild(delBtn);
-                list.appendChild(li);
+                actions.appendChild(editBtn);
+                actions.appendChild(delBtn);
+
+                card.appendChild(check);
+                card.appendChild(body);
+                card.appendChild(actions);
+                container.appendChild(card);
             });
         }
 
-        /* ── API 호출 ── */
+        /* ─────────────────────────────────────
+           API calls
+        ───────────────────────────────────── */
+        async function fetchTodos() {
+            try {
+                const res = await fetch('/todos');
+                allTodos  = await res.json();
+                updateStats(allTodos);
+                renderTodos(allTodos);
+            } catch {
+                showToast('Failed to load tasks', 'error');
+            }
+        }
+
         async function toggleDone(todo) {
-            const res = await fetch(`/todos/${todo.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...todo, completed: !todo.completed })
-            });
-            if (res.ok) fetchTodos();
-        }
-
-        async function editTodo(todo) {
-            const title = prompt('New title:', todo.title);
-            if (title === null) return;
-            const description = prompt('New description:', todo.description);
-            if (description === null) return;
-            const completed = confirm('Mark as completed?');
-            const res = await fetch(`/todos/${todo.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...todo, title, description, completed })
-            });
-            if (res.ok) fetchTodos();
+            try {
+                const res = await fetch(`/todos/${todo.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...todo, completed: !todo.completed })
+                });
+                if (res.ok) {
+                    showToast(todo.completed ? 'Marked as active' : 'Task completed!', 'success');
+                    fetchTodos();
+                }
+            } catch { showToast('Failed to update task', 'error'); }
         }
 
         async function deleteTodo(id) {
-            const res = await fetch(`/todos/${id}`, { method: 'DELETE' });
-            if (res.ok) fetchTodos();
+            try {
+                const res = await fetch(`/todos/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('Task deleted', 'success');
+                    fetchTodos();
+                }
+            } catch { showToast('Failed to delete task', 'error'); }
         }
 
-        document.getElementById('todo-form').addEventListener('submit', async (e) => {
+        document.getElementById('todo-form').addEventListener('submit', async e => {
             e.preventDefault();
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            const due = selectedDue ? computeDueDate(selectedDue) : null;
+            const title       = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const due         = selectedDue ? computeDueDate(selectedDue) : null;
 
-            const res = await fetch('/todos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: Date.now(), title, description, completed: false, due })
-            });
-            if (res.ok) {
-                e.target.reset();
-                document.querySelectorAll('.due-btn').forEach(b => b.classList.remove('selected'));
-                selectedDue = null;
-                fetchTodos();
-            }
+            try {
+                const res = await fetch('/todos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: Date.now(), title, description, completed: false, due })
+                });
+                if (res.ok) {
+                    e.target.reset();
+                    document.querySelectorAll('.due-chip').forEach(b => b.classList.remove('selected'));
+                    selectedDue = null;
+                    showToast('Task added!', 'success');
+                    fetchTodos();
+                }
+            } catch { showToast('Failed to add task', 'error'); }
         });
 
+        /* ─────────────────────────────────────
+           Edit Modal
+        ───────────────────────────────────── */
+        function openModal(todo) {
+            editingTodo = todo;
+            document.getElementById('edit-title').value       = todo.title;
+            document.getElementById('edit-description').value = todo.description;
+            const toggle = document.getElementById('edit-toggle');
+            toggle.classList.toggle('on', !!todo.completed);
+            document.getElementById('modal-overlay').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('open');
+            editingTodo = null;
+        }
+
+        async function saveEdit() {
+            if (!editingTodo) return;
+            const title       = document.getElementById('edit-title').value.trim();
+            const description = document.getElementById('edit-description').value.trim();
+            const completed   = document.getElementById('edit-toggle').classList.contains('on');
+
+            if (!title || !description) {
+                showToast('Title and description are required', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/todos/${editingTodo.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...editingTodo, title, description, completed })
+                });
+                if (res.ok) {
+                    closeModal();
+                    showToast('Task updated!', 'success');
+                    fetchTodos();
+                }
+            } catch { showToast('Failed to update task', 'error'); }
+        }
+
+        document.getElementById('edit-toggle').addEventListener('click', function () {
+            this.classList.toggle('on');
+        });
+
+        document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+        document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+        document.getElementById('modal-save-btn').addEventListener('click', saveEdit);
+
+        document.getElementById('modal-overlay').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        /* Keyboard: Escape closes modal */
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        /* ─────────────────────────────────────
+           Toast
+        ───────────────────────────────────── */
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? '✓' : '✕';
+            toast.textContent = `${icon}  ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.25s ease forwards';
+                setTimeout(() => toast.remove(), 250);
+            }, 2600);
+        }
+
+        /* ─────────────────────────────────────
+           Init
+        ───────────────────────────────────── */
         fetchTodos();
     </script>
 </body>
