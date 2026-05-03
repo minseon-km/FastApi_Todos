@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from typing import Optional
 import json
 import os
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -16,6 +17,7 @@ class TodoItem(BaseModel):
     title: str
     description: str
     completed: bool
+    due: Optional[str] = None
 
 # JSON 파일 경로
 TODO_FILE = "todo.json"
