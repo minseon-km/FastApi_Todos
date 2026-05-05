@@ -28,18 +28,31 @@ _file_lock = threading.Lock()
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2, None: 3}
 
 
-def load_todos():
+def load_todos() -> list:
     with _file_lock:
-        if os.path.exists(TODO_FILE):
-            with open(TODO_FILE, "r") as file:
-                return json.load(file)
+        return _read_todos()
+
+
+def _read_todos() -> list:
+    """락을 이미 보유한 상태에서 파일을 읽음."""
+    if not os.path.exists(TODO_FILE):
+        return []
+    try:
+        with open(TODO_FILE, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
         return []
 
 
-def save_todos(todos):
+def _write_todos(todos: list) -> None:
+    """락을 이미 보유한 상태에서 파일을 씀."""
+    with open(TODO_FILE, "w") as f:
+        json.dump(todos, f, indent=4)
+
+
+def save_todos(todos: list) -> None:
     with _file_lock:
-        with open(TODO_FILE, "w") as file:
-            json.dump(todos, file, indent=4)
+        _write_todos(todos)
 
 
 @app.get("/todos", response_model=list[TodoItem])
@@ -80,28 +93,33 @@ def search_todos(q: str = Query(..., min_length=1)):
 
 @app.post("/todos", response_model=TodoItem)
 def create_todo(todo: TodoItem):
-    todos = load_todos()
-    todos.append(todo.dict())
-    save_todos(todos)
+    with _file_lock:
+        todos = _read_todos()
+        todos.append(todo.model_dump())
+        _write_todos(todos)
     return todo
 
 
 @app.put("/todos/{todo_id}", responses={404: {"description": "Todo not found"}}, response_model=TodoItem)
 def update_todo(todo_id: int, updated_todo: TodoItem):
-    todos = load_todos()
-    for todo in todos:
-        if todo["id"] == todo_id:
-            todo.update(updated_todo.dict())
-            save_todos(todos)
-            return updated_todo
+    with _file_lock:
+        todos = _read_todos()
+        for todo in todos:
+            if todo["id"] == todo_id:
+                todo.update(updated_todo.model_dump())
+                _write_todos(todos)
+                return updated_todo
     raise HTTPException(status_code=404, detail="To-Do item not found")
 
 
 @app.delete("/todos/{todo_id}", response_model=dict)
 def delete_todo(todo_id: int):
-    todos = load_todos()
-    todos = [todo for todo in todos if todo["id"] != todo_id]
-    save_todos(todos)
+    with _file_lock:
+        todos = _read_todos()
+        filtered = [t for t in todos if t["id"] != todo_id]
+        if len(filtered) == len(todos):
+            raise HTTPException(status_code=404, detail="To-Do item not found")
+        _write_todos(filtered)
     return {"message": "To-Do item deleted"}
 
 
