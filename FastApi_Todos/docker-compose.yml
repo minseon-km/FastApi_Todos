@@ -7,7 +7,9 @@ services:
       dockerfile: Dockerfile      # Dockerfile 이름 (생략 가능, 기본값은 'Dockerfile')
     container_name: FastApi-app
     ports:
-      - "5001:8000"
+      - "5002:8000"
+    networks:
+      - loadtest-net
 
   sonarqube:
     image: sonarqube:latest
@@ -21,6 +23,8 @@ services:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - loadtest-net
 
   prometheus:
     image: prom/prometheus:latest
@@ -31,6 +35,8 @@ services:
       - "7070:9090"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - loadtest-net
 
   grafana:
     image: grafana/grafana:latest
@@ -38,16 +44,38 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin  # 기본 Grafana 로그인 비밀번호
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # admin은 기본 Grafana 로그인 비밀번호(변경된 비밀번호로 수정 권장)
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES=false
+      - GF_PLUGINS_PREINSTALL_AUTO_UPDATE=false
     volumes:
       - grafana-data:/var/lib/grafana
+    networks:
+      - loadtest-net
 
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
     ports:
       - "7100:9100"
-      
+    networks:
+      - loadtest-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "7200:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    networks:
+      - loadtest-net
+
 volumes:
   sonarqube_conf:
   sonarqube_data:
@@ -59,3 +87,4 @@ networks:
   loadtest-net:
     external: true
     name: fastapi_todos_loadtest-net
+
