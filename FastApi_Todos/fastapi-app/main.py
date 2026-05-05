@@ -1,45 +1,79 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Literal
 import json
 import os
 from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
 
-# Prometheus 메트릭스 엔드포인트 (/metrics)
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
-# To-Do 항목 모델
+
 class TodoItem(BaseModel):
     id: int
     title: str
     description: str
     completed: bool
     due: Optional[str] = None
+    priority: Optional[Literal["high", "medium", "low"]] = None
+    category: Optional[str] = None
 
-# JSON 파일 경로
+
 TODO_FILE = "todo.json"
 
-# JSON 파일에서 To-Do 항목 로드
+PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2, None: 3}
+
+
 def load_todos():
     if os.path.exists(TODO_FILE):
         with open(TODO_FILE, "r") as file:
             return json.load(file)
     return []
 
-# JSON 파일에 To-Do 항목 저장
+
 def save_todos(todos):
     with open(TODO_FILE, "w") as file:
         json.dump(todos, file, indent=4)
 
-# To-Do 목록 조회
-@app.get("/todos", response_model=list[TodoItem])
-def get_todos():
-    return load_todos()
 
-# 신규 To-Do 항목 추가
+@app.get("/todos", response_model=list[TodoItem])
+def get_todos(
+    priority: Optional[Literal["high", "medium", "low"]] = Query(None),
+    category: Optional[str] = Query(None),
+    completed: Optional[bool] = Query(None),
+    sort_by: Optional[Literal["priority", "due", "id"]] = Query(None),
+):
+    todos = load_todos()
+
+    if priority is not None:
+        todos = [t for t in todos if t.get("priority") == priority]
+    if category is not None:
+        todos = [t for t in todos if t.get("category") == category]
+    if completed is not None:
+        todos = [t for t in todos if t.get("completed") == completed]
+
+    if sort_by == "priority":
+        todos = sorted(todos, key=lambda t: PRIORITY_ORDER[t.get("priority")])
+    elif sort_by == "due":
+        todos = sorted(todos, key=lambda t: (t.get("due") is None, t.get("due")))
+    elif sort_by == "id":
+        todos = sorted(todos, key=lambda t: t["id"])
+
+    return todos
+
+
+@app.get("/todos/search", response_model=list[TodoItem])
+def search_todos(q: str = Query(..., min_length=1)):
+    todos = load_todos()
+    q_lower = q.lower()
+    return [
+        t for t in todos
+        if q_lower in t["title"].lower() or q_lower in t["description"].lower()
+    ]
+
+
 @app.post("/todos", response_model=TodoItem)
 def create_todo(todo: TodoItem):
     todos = load_todos()
@@ -47,8 +81,8 @@ def create_todo(todo: TodoItem):
     save_todos(todos)
     return todo
 
-# To-Do 항목 수정
-@app.put("/todos/{todo_id}", responses={404: {"description": "User not found"}}, response_model=TodoItem)
+
+@app.put("/todos/{todo_id}", responses={404: {"description": "Todo not found"}}, response_model=TodoItem)
 def update_todo(todo_id: int, updated_todo: TodoItem):
     todos = load_todos()
     for todo in todos:
@@ -56,10 +90,9 @@ def update_todo(todo_id: int, updated_todo: TodoItem):
             todo.update(updated_todo.dict())
             save_todos(todos)
             return updated_todo
-    
     raise HTTPException(status_code=404, detail="To-Do item not found")
 
-# To-Do 항목 삭제
+
 @app.delete("/todos/{todo_id}", response_model=dict)
 def delete_todo(todo_id: int):
     todos = load_todos()
@@ -67,7 +100,7 @@ def delete_todo(todo_id: int):
     save_todos(todos)
     return {"message": "To-Do item deleted"}
 
-# HTML 파일 서빙
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     with open("templates/index.html", "r") as file:
