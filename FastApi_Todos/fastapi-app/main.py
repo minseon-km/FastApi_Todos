@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, Literal
 import json
 import os
+import threading
 from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
@@ -22,20 +23,23 @@ class TodoItem(BaseModel):
 
 
 TODO_FILE = "todo.json"
+_file_lock = threading.Lock()
 
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2, None: 3}
 
 
 def load_todos():
-    if os.path.exists(TODO_FILE):
-        with open(TODO_FILE, "r") as file:
-            return json.load(file)
-    return []
+    with _file_lock:
+        if os.path.exists(TODO_FILE):
+            with open(TODO_FILE, "r") as file:
+                return json.load(file)
+        return []
 
 
 def save_todos(todos):
-    with open(TODO_FILE, "w") as file:
-        json.dump(todos, file, indent=4)
+    with _file_lock:
+        with open(TODO_FILE, "w") as file:
+            json.dump(todos, file, indent=4)
 
 
 @app.get("/todos", response_model=list[TodoItem])
