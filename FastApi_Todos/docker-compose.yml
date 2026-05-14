@@ -11,6 +11,30 @@ services:
     networks:
       - loadtest-net
 
+  jmeter:
+    build:
+      context: ./jmeter
+      dockerfile: Dockerfile
+    container_name: jmeter
+    volumes:
+      - ./jmeter:/jmeter
+    command:
+      - jmeter
+      - -n
+      - -t
+      - /jmeter/fastapi_test_plan.jmx
+      - -l
+      - /jmeter/results.jtl
+      - -Dserver.host=fastapi-app
+      - -JBASE_URL=fastapi-app
+      - -JPORT=8000
+      - -Jjmeter.save.saveservice.output_format=csv
+      - -e
+      - -o
+      - /jmeter/report
+    networks:
+      - loadtest-net
+
   sonarqube:
     image: sonarqube:latest
     container_name: sonarqube
@@ -86,5 +110,6 @@ volumes:
 networks:
   loadtest-net:
     external: true
+    driver: bridge
     name: fastapi_todos_loadtest-net
 
