@@ -117,8 +117,6 @@ def delete_todo(todo_id: int):
     with _file_lock:
         todos = _read_todos()
         filtered = [t for t in todos if t["id"] != todo_id]
-        if len(filtered) == len(todos):
-            raise HTTPException(status_code=404, detail="To-Do item not found")
         _write_todos(filtered)
     return {"message": "To-Do item deleted"}
 
