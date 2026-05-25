@@ -7,7 +7,13 @@ services:
       dockerfile: Dockerfile      # Dockerfile 이름 (생략 가능, 기본값은 'Dockerfile')
     container_name: FastApi-app
     ports:
-      - "5002:8000"
+      - "5001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - loadtest-net
 
@@ -16,6 +22,9 @@ services:
       context: ./jmeter
       dockerfile: Dockerfile
     container_name: jmeter
+    depends_on:
+      fastapi-app:
+        condition: service_healthy
     volumes:
       - ./jmeter:/jmeter
     command:
@@ -110,6 +119,5 @@ volumes:
 networks:
   loadtest-net:
     external: true
-    driver: bridge
     name: fastapi_todos_loadtest-net
 
