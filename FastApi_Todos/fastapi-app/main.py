@@ -1,15 +1,45 @@
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
 from typing import Optional, Literal
 import json
 import os
 import threading
+import logging
+import time
+from multiprocessing import Queue
 from prometheus_fastapi_instrumentator import Instrumentator
+from logging_loki import LokiQueueHandler
 
 app = FastAPI()
 
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
+loki_url = os.getenv("LOKI_ENDPOINT", "http://loki:3100/loki/api/v1/push")
+
+loki_logs_handler = LokiQueueHandler(
+    Queue(-1),
+    url=loki_url,
+    tags={"application": "fastapi"},
+    version="1",
+)
+
+custom_logger = logging.getLogger("custom.access")
+custom_logger.setLevel(logging.INFO)
+custom_logger.addHandler(loki_logs_handler)
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    log_message = (
+        f'{request.client.host} - "{request.method} {request.url.path} HTTP/1.1" '
+        f'{response.status_code} {duration:.3f}s'
+    )
+    custom_logger.info(log_message)
+    return response
 
 
 class TodoItem(BaseModel):
@@ -126,3 +156,8 @@ def read_root():
     with open("templates/index.html", "r") as file:
         content = file.read()
     return HTMLResponse(content=content)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=204)
