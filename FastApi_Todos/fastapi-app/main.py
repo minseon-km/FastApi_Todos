@@ -45,7 +45,7 @@ async def log_requests(request: Request, call_next):
 class TodoItem(BaseModel):
     id: int
     title: str
-    description: str
+    description: Optional[str] = None
     completed: bool
     due: Optional[str] = None
     priority: Optional[Literal["high", "medium", "low"]] = None

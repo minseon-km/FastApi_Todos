@@ -477,6 +477,22 @@
         .filter-tab:hover { color: var(--text-2); }
         .filter-tab.active { background: var(--accent); color: #fff; }
 
+        .tab-count {
+            display: inline-block;
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            background: rgba(0,0,0,0.12);
+            border-radius: 8px;
+            padding: 1px 5px;
+            margin-left: 3px;
+            vertical-align: middle;
+        }
+
+        .filter-tab:not(.active) .tab-count {
+            background: var(--border);
+            color: var(--muted);
+        }
+
         /* ── Sort bar ── */
         .sort-bar {
             display: flex;
@@ -797,6 +813,14 @@
             background: var(--surface);
         }
 
+        .modal-field input[type="date"] {
+            color-scheme: light dark;
+        }
+
+        [data-theme="dark"] .modal-field input[type="date"] {
+            color-scheme: dark;
+        }
+
         .modal-field .chips-row { margin-top: 2px; }
 
         .toggle-row {
@@ -1048,7 +1072,7 @@
                         </div>
                         <div class="field">
                             <label>Description</label>
-                            <input type="text" id="description" placeholder="Add a note..." required autocomplete="off">
+                            <input type="text" id="description" placeholder="Add a note..." autocomplete="off">
                         </div>
                     </div>
                     <div class="input-row">
@@ -1093,9 +1117,9 @@
                 <input type="text" class="search-input" id="search-input" placeholder="Search tasks..." autocomplete="off">
             </div>
             <div class="filter-tabs">
-                <button class="filter-tab active" data-filter="all">All</button>
-                <button class="filter-tab" data-filter="active">Active</button>
-                <button class="filter-tab" data-filter="done">Done</button>
+                <button class="filter-tab active" data-filter="all">All <span class="tab-count" id="count-all"></span></button>
+                <button class="filter-tab" data-filter="active">Active <span class="tab-count" id="count-active"></span></button>
+                <button class="filter-tab" data-filter="done">Done <span class="tab-count" id="count-done"></span></button>
             </div>
         </div>
 
@@ -1137,6 +1161,10 @@
                 <div class="modal-field">
                     <label>Category</label>
                     <input type="text" id="edit-category" placeholder="e.g. work, personal..." autocomplete="off">
+                </div>
+                <div class="modal-field">
+                    <label>Due date</label>
+                    <input type="date" id="edit-due" autocomplete="off">
                 </div>
                 <div class="modal-field">
                     <label>Priority</label>
@@ -1331,13 +1359,17 @@
         }
 
         function renderTodos(todos) {
+            document.getElementById('count-all').textContent    = todos.length || '';
+            document.getElementById('count-active').textContent = todos.filter(t => !t.completed).length || '';
+            document.getElementById('count-done').textContent   = todos.filter(t => t.completed).length || '';
+
             let list = todos;
             if (filter === 'active') list = list.filter(t => !t.completed);
             if (filter === 'done')   list = list.filter(t => t.completed);
             if (searchQuery) {
                 list = list.filter(t =>
                     t.title.toLowerCase().includes(searchQuery) ||
-                    t.description.toLowerCase().includes(searchQuery) ||
+                    (t.description || '').toLowerCase().includes(searchQuery) ||
                     (t.category || '').toLowerCase().includes(searchQuery)
                 );
             }
@@ -1402,10 +1434,12 @@
                 top.appendChild(titleRow);
                 body.appendChild(top);
 
-                const descEl = document.createElement('div');
-                descEl.className = 'todo-desc';
-                descEl.textContent = todo.description;
-                body.appendChild(descEl);
+                if (todo.description) {
+                    const descEl = document.createElement('div');
+                    descEl.className = 'todo-desc';
+                    descEl.textContent = todo.description;
+                    body.appendChild(descEl);
+                }
 
                 /* Meta badges */
                 const meta = document.createElement('div');
@@ -1535,6 +1569,7 @@
             document.getElementById('edit-title').value       = todo.title;
             document.getElementById('edit-description').value = todo.description;
             document.getElementById('edit-category').value    = todo.category || '';
+            document.getElementById('edit-due').value         = todo.due || '';
             document.getElementById('edit-toggle').classList.toggle('on', !!todo.completed);
 
             document.querySelectorAll('[data-edit-prio]').forEach(b => {
@@ -1555,15 +1590,16 @@
             const title       = document.getElementById('edit-title').value.trim();
             const description = document.getElementById('edit-description').value.trim();
             const category    = document.getElementById('edit-category').value.trim() || null;
+            const due         = document.getElementById('edit-due').value || null;
             const completed   = document.getElementById('edit-toggle').classList.contains('on');
 
-            if (!title || !description) { showToast('Title and description are required', 'error'); return; }
+            if (!title) { showToast('Title is required', 'error'); return; }
 
             try {
                 const res = await fetch(`/todos/${editingTodo.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...editingTodo, title, description, category, completed, priority: editPrio })
+                    body: JSON.stringify({ ...editingTodo, title, description, category, due, completed, priority: editPrio })
                 });
                 if (res.ok) { closeModal(); showToast('Task updated!', 'success'); fetchTodos(); }
             } catch { showToast('Failed to update task', 'error'); }
